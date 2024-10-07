@@ -34,16 +34,15 @@ def custom_base_errors_handler(_: Request, error: BaseError) -> JSONResponse:
     )
 
     # Crear un ErrorResponseMulti si hay varios errores
-    response = ErrorResponseMulti(
-        results=[error_response]
-    )
+    response = ErrorResponseMulti(results=[error_response])
 
     # Devolver la respuesta con el Content-Type adecuado para RFC 7807
     return JSONResponse(
         content=response.model_dump(by_alias=True),
         status_code=error.status_code,
-        headers={"Content-Type": "application/problem+json"}
+        headers={"Content-Type": "application/problem+json"},
     )
+
 
 def python_base_error_handler(_: Request, error: Exception) -> JSONResponse:
     """This function is called if the Exception was raised."""

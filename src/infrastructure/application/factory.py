@@ -1,5 +1,3 @@
-import asyncio
-from functools import partial
 from typing import Callable, Coroutine, Iterable
 
 from fastapi import APIRouter, FastAPI

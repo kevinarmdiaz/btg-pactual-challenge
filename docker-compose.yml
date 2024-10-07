@@ -10,16 +10,16 @@ services:
         - mongodb-data:/data/db
       restart: always
 
-#    backend:
-#        build:
-#            context: ./
-#        depends_on:
-#            - db
-#        env_file:
-#            - .env
-#        ports:
-#            - ${FUNDSAPP_UVICORN_HOST}:${FUNDSAPP_UVICORN_PORT}
-#        restart: always
+    backend:
+        build:
+            context: ./
+        depends_on:
+            - db
+        env_file:
+            - .env
+        ports:
+            - ${FUNDSAPP_UVICORN_PORT}:${FUNDSAPP_UVICORN_PORT}
+        restart: no
 
 volumes:
   mongodb-data:

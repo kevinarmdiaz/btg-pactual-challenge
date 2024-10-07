@@ -6,7 +6,6 @@ from src.infrastructure.mongodb.services.transactions import init_db
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-from typing import List
 
 async def init() -> None:
     """
@@ -19,28 +18,24 @@ async def init() -> None:
         {
             "name": "FPV_BTG_PACTUAL_RECAUDADORA",
             "category": "FPV",
-            "minimum_investment_amount": 75000
+            "minimum_investment_amount": 75000,
         },
         {
             "name": "FPV_BTG_PACTUAL_ECOPETROL",
             "category": "FPV",
-            "minimum_investment_amount": 125000
+            "minimum_investment_amount": 125000,
         },
-        {
-            "name": "DEUDAPRIVADA",
-            "category": "FIC",
-            "minimum_investment_amount": 50000
-        },
+        {"name": "DEUDAPRIVADA", "category": "FIC", "minimum_investment_amount": 50000},
         {
             "name": "FDO-ACCIONES",
             "category": "FIC",
-            "minimum_investment_amount": 250000
+            "minimum_investment_amount": 250000,
         },
         {
             "name": "FPV_BTG_PACTUAL_DINAMICA",
             "category": "FPV",
-            "minimum_investment_amount": 100000
-        }
+            "minimum_investment_amount": 100000,
+        },
     ]
 
     users_data = [
@@ -48,7 +43,7 @@ async def init() -> None:
             "name": "Kevin Diaz",
             "email": "kevindiaz9511@gmail.com",
             "phone": "3012368027",
-            "balance": 500000
+            "balance": 500000,
         },
     ]
 
@@ -59,7 +54,7 @@ async def init() -> None:
                 name=user["name"],
                 email=user["email"],
                 phone=user["phone"],
-                balance=user["balance"]
+                balance=user["balance"],
             )
             await new_user.insert()
             print(f"Inserted User: {user['name']}")
@@ -71,15 +66,12 @@ async def init() -> None:
             new_fund = FundsCollection(
                 name=fund["name"],
                 category=fund["category"],
-                minimum_investment_amount=fund["minimum_investment_amount"]
+                minimum_investment_amount=fund["minimum_investment_amount"],
             )
             await new_fund.insert()
             print(f"Inserted fund: {fund['name']}")
         else:
             print(f"Fund already exists: {fund['name']}")
-
-
-
 
     print("..: Finishing db initialization :::..")
 

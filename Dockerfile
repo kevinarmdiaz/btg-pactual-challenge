@@ -1,37 +1,47 @@
+# Primera etapa - Builder
 FROM python:3.11.3-slim as builder
 
-# Environment variables necessary for Poetry installation
+# Variables de entorno para Poetry
 ENV POETRY_HOME="/opt/poetry"
 ENV POETRY_VERSION="1.4.2"
 ENV POETRY_VIRTUALENVS_IN_PROJECT=1
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
+# Instalar dependencias necesarias
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry
-RUN set -x \
-    && curl -sSL https://install.python-poetry.org | python3 -
+# Instalar Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# This will enable us to invoke Poetry as `poetry` command
+# Agregar Poetry al PATH
 ENV PATH="$POETRY_HOME/bin:$PATH"
 
+# Crear directorio de trabajo
 WORKDIR /code
 
-COPY pyproject.toml poetry.lock* ./
+# Copiar archivos de dependencias de Poetry
+COPY pyproject.toml poetry.lock* /code/
 
+# Instalar dependencias del proyecto (sin incluir dependencias de desarrollo)
 RUN poetry install --no-ansi --no-interaction --without dev
 
+# Segunda etapa - Imagen final
 FROM python:3.11.3-slim
 
+# Directorio de trabajo
 WORKDIR /code
 
-# Copy the .venv folder from builder image
-COPY --from=builder /code/.venv ./.venv
+# Copiar el entorno virtual desde la etapa builder
+COPY --from=builder /code/.venv /code/.venv
 
-ENV PYTHONBUFFERED=1
-ENV PATH="/app/.venv/bin:$PATH"
+# Configurar el PATH para usar el entorno virtual
+ENV PATH="/code/.venv/bin:$PATH"
 
-COPY ./src ./src
+# Copiar el código fuente
+COPY ./src /code/src
 
-CMD [".venv/bin/python", "-m", "fundsinvestmentsapp"]
+# Establecer variable para no hacer buffering en Python
+ENV PYTHONUNBUFFERED=1
+
+# Ejecutar la aplicación con Gunicorn y Uvicorn
+CMD ["gunicorn", "src.main:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080"]

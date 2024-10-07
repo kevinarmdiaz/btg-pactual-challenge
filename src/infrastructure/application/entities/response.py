@@ -31,7 +31,7 @@ _Response = Mapping[int | str, dict[str, Any]]
 
 class ErrorResponse(PublicEntity):
     """Error response model."""
-    
+
     message: str = Field(description="Short description of error")
     detail: str = Field(description="Error detail")
     instance: str = Field(description="Instance path eg. '/subscription/signup-fund'")

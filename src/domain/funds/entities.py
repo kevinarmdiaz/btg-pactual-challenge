@@ -1,4 +1,3 @@
-
 from src.infrastructure.application import InternalEntity
 from pydantic import UUID4
 

@@ -37,8 +37,8 @@ def get(namespace: str, key: Any) -> Process:
     _key = _build_key(namespace, key)
     try:
         return _PROCESSES[_key]
-    except KeyError:
-        raise ProcessError(message=f"Process {_key} does not exist.")
+    except KeyError as e:
+        raise ProcessError(message=f"Process {_key} does not exist.") from e
 
 
 def kill(namespace: str, key: Any) -> None:

@@ -7,14 +7,18 @@ __all__ = ("SubscriptionUncommited", "SubscriptionFlat")
 
 
 class _SubscriptionBase(InternalEntity):
-	fund_id: UUID4
-	user_id: UUID4
+    fund_id: UUID4
+    user_id: UUID4
 
 
 class SubscriptionUncommited(_SubscriptionBase):
-	"""This schema is used for creating a subscription instance in the database."""
-	pass
+    """This schema is used for creating a subscription instance in the database."""
+
+    pass
+
+
 class SubscriptionFlat(_SubscriptionBase):
-	"""Existing subscription representation."""
-	id: UUID4
-	subscription_date: datetime
+    """Existing subscription representation."""
+
+    id: UUID4
+    subscription_date: datetime

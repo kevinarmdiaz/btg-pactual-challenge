@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Request, status
-from pydantic import UUID4
+from fastapi import APIRouter, status
 from src.application import users
 from src.domain.users import (
     UserFlat,
 )
-from src.infrastructure.application import Response, ResponseMulti
+from src.infrastructure.application import ResponseMulti
 from .contracts import UserPublic
 
 router = APIRouter()

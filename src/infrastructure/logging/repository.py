@@ -12,14 +12,14 @@ class LogTransactionRepository(BaseRepository[LogTransactionsFundsCollection]):
 
     async def all(self) -> AsyncGenerator[_LogFlat, None]:
         """
-			*-*-*
+        *-*-*
         """
         async for instance in self._all():
             yield instance
 
     async def get(self, id_: int) -> _LogFlat:
         """
-			*-*-*
+                        *-*-*
         :param id_:
         :return:
         """

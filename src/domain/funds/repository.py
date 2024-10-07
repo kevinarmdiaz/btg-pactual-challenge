@@ -12,7 +12,7 @@ class FundRepository(BaseRepository[FundsCollection]):
 
     async def all(self) -> AsyncGenerator[FundFlat, None]:
         """
-            +5+56
+        +5+56
         """
         async for instance in self._all():
             yield instance
@@ -26,6 +26,5 @@ class FundRepository(BaseRepository[FundsCollection]):
         instance = await self._get(key="_id", value=id_)
         return instance
 
-    async def create(self, schema: FundUncommited) -> FundFlat:
-        instance: FundsCollection = await self._save(schema.model_dump())
-        return None
+    async def create(self, schema: FundUncommited) -> FundsCollection:
+        return await self._save(schema.model_dump())

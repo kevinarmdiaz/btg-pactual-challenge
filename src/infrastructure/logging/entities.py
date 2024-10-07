@@ -14,7 +14,9 @@ class _LogBase(InternalEntity):
     transaction_type: str
     message: str | None
     balance: int
-    date: datetime = Field(default_factory=datetime.now, description="Date of the transaction")
+    date: datetime = Field(
+        default_factory=datetime.now, description="Date of the transaction"
+    )
 
     class Settings:
         name = "log_transactions_funds"  # Collection name in MongoDB

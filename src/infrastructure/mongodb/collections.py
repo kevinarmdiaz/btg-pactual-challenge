@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import TypeVar
 
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID, uuid4
 
-from beanie import Document, PydanticObjectId, Link, Insert, Replace
+from beanie import Document, Link
 from pydantic import Field, UUID4
 
 # ### 🧑🏽‍💼Colección: user
@@ -32,8 +32,12 @@ from pydantic import Field, UUID4
 # date: IsoDate
 
 __all__ = (
-    "Document", "UsersCollection", "FundsCollection",
-    "LogTransactionsFundsCollection", "ConcreteCollection", "SubscriptionCollection"
+    "Document",
+    "UsersCollection",
+    "FundsCollection",
+    "LogTransactionsFundsCollection",
+    "ConcreteCollection",
+    "SubscriptionCollection",
 )
 
 from src.infrastructure.application.errors.entities import InsufficientBalanceError
@@ -41,6 +45,7 @@ from src.infrastructure.application.errors.entities import InsufficientBalanceEr
 
 class _Document(Document):
     """Base class for all database collections."""
+
     id: UUID = Field(default_factory=uuid4)
 
 
@@ -65,7 +70,7 @@ class UsersCollection(_Document):
     class Settings:
         use_state_management = True
         name = "users"  # Collection name in MongoDB
-    
+
     async def check_balance(self, fund_instance: FundsCollection):
         """
 
@@ -76,9 +81,9 @@ class UsersCollection(_Document):
                 balance=self.balance,
                 fund_name=fund_instance.name,
                 minimum_investment=fund_instance.minimum_investment_amount,
-                instance=f"/subscription/subscribe-fund"
+                instance="/subscription/subscribe-fund",
             )
-    
+
     async def add_balance(self, minimum_investment_amount: int):
         """
 
@@ -102,23 +107,32 @@ class UsersCollection(_Document):
 class LogTransactionsFundsCollection(_Document):
     user_id: UUID4 = Field(..., description="Reference to the user ID")
     fund_id: UUID4 = Field(..., description="Reference to the fund ID")
-    transaction_type: str = Field(..., description="Type of transaction (Apertura, Cancelación)")
+    transaction_type: str = Field(
+        ..., description="Type of transaction (Apertura, Cancelación)"
+    )
     message: Optional[str] = Field(None, description="Additional message or details")
-    balance: int = Field(..., description="User's balance after the transaction in Int64 format")
-    date: datetime = Field(default_factory=datetime.now, description="Date of the transaction")
+    balance: int = Field(
+        ..., description="User's balance after the transaction in Int64 format"
+    )
+    date: datetime = Field(
+        default_factory=datetime.now, description="Date of the transaction"
+    )
 
     class Settings:
         name = "log_transactions_funds"  # Collection name in MongoDB
+
 
 # 📝📈 Manage subscriptions
 class SubscriptionCollection(_Document):
     user: Link[UsersCollection]
     fund: Link[FundsCollection]
-    subscription_date: Optional[datetime] = Field(default_factory=datetime.now, description="Date of the transaction")
+    subscription_date: Optional[datetime] = Field(
+        default_factory=datetime.now, description="Date of the transaction"
+    )
 
     class Settings:
         name = "subscriptions"
-    
+
     # @after_event([Insert, Replace])
     # async def send_callback(self):
     #     pass
