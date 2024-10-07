@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from loguru import logger
 
-from src import presentation
 from src.config import settings
 from src.infrastructure.application import create as application_factory
 from src.initial_data import init
+from src.presentation import api_router
 
 # Adjust the logging
 # -------------------------------
@@ -28,11 +28,7 @@ logger.add(
 # -------------------------------
 app: FastAPI = application_factory(
     debug=settings.debug,
-    rest_routers=(
-        presentation.funds.rest.router,
-        presentation.users.rest.router,
-        presentation.subscriptions.rest.router
-    ),
+    app_router=api_router,
     startup_tasks=[init],
     shutdown_tasks=[],
     startup_processes=[],

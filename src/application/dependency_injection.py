@@ -2,8 +2,9 @@ from src.domain.funds import FundRepository
 from src.domain.users import UserRepository
 from src.infrastructure.application.errors import NotFoundError
 from src.infrastructure.mongodb import FundsCollection, transaction_mongo, UsersCollection
-from src.presentation.subscriptions.contracts import SubscriptionRequestBody
 from fastapi import status
+
+from src.presentation.subscriptions.v1.contracts import SubscriptionRequestBody
 
 
 async def get_fund(

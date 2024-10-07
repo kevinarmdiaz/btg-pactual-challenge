@@ -10,11 +10,11 @@ from src.infrastructure.application import Response, ResponseMulti
 
 from .contracts import FundCreateRequestBody, FundPublic
 
-router = APIRouter(prefix="/funds", tags=["Funds"])
+router = APIRouter()
 
 
 @router.get("", status_code=status.HTTP_200_OK)
-async def funds_list(request: Request) -> ResponseMulti[FundPublic]:
+async def funds_list() -> ResponseMulti[FundPublic]:
     """Get all products."""
 
     _funds: list[FundFlat] = await funds.get_all()

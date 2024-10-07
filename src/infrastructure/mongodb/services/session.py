@@ -1,3 +1,4 @@
+import asyncio
 from contextvars import ContextVar
 
 from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorClientSession
@@ -57,6 +58,8 @@ class Session:
 
     def __init__(self, db_name: str = "mydatabase") -> None:
         self._client = create_motor_client()
+        self._client.get_io_loop = asyncio.get_running_loop
+        
         self._db: AsyncIOMotorDatabase = self._client[db_name]
         self._session: AsyncIOMotorClientSession | None = None
 

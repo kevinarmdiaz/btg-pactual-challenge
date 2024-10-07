@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  mongo_test:
+    image: mongo:5.0.17
+    env_file:
+      - .env.test  # Archivo con las variables de entorno para la base de datos de prueba
+    ports:
+      - "27018:27017"  # Puerto de prueba para evitar conflictos con el puerto estándar
+    volumes:
+      - mongodb-test-data:/data/db  # Volumen específico para los datos de prueba
+    restart: always
+
+volumes:
+  mongodb-test-data:  # Volumen para almacenar datos de prueba de MongoDB

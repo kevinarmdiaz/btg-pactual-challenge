@@ -102,7 +102,6 @@ class SubscriptionsRepository(BaseRepository[SubscriptionCollection]):
 	
 	async def cancel_in_fund(self, user: UsersCollection, fund: FundsCollection):
 		try:
-			print("Aqui paso")
 			db_subscription = await SubscriptionsRepository().get_subscription(user_id=user.id, fund_id=fund.id)
 			
 			if not db_subscription:

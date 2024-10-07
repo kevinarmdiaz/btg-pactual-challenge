@@ -10,7 +10,7 @@ from src.infrastructure.application import DatabaseError
 from src.config import settings
 from .session import Session as MongoSession
 
-__all__ = ("transaction_mongo",)
+__all__ = ("transaction_mongo", "__beanie_models__")
 
 from ..collections import FundsCollection, UsersCollection, LogTransactionsFundsCollection, SubscriptionCollection
 
@@ -36,23 +36,23 @@ async def init_db():
 #TODO convert to strategy
 @asynccontextmanager
 async def transaction_mongo() -> AsyncGenerator[AsyncIOMotorClientSession, None]:
-	"""Context manager to handle MongoDB transactions."""
-	mongo_session = MongoSession()  # Instancia de la clase de MongoDB adaptada
-	await mongo_session.start_session()
+    """Context manager to handle MongoDB transactions."""
+    mongo_session = MongoSession()  # Instancia de la clase de MongoDB adaptada
+    await mongo_session.start_session()
 
-	session: AsyncIOMotorClientSession = mongo_session._session
+    session: AsyncIOMotorClientSession = mongo_session._session
 
-	try:
-		# Inicialización de Beanie con los modelos
-		await init_beanie(
-			database=session.client[settings.DB_NAME],  # Selecciona la base de datos
-			document_models=__beanie_models__  # Los modelos de Beanie que usarás
-		)
+    try:
+        # Inicialización de Beanie con los modelos
+        await init_beanie(
+            database=session.client[settings.DB_NAME],  # Selecciona la base de datos
+            document_models=__beanie_models__  # Los modelos de Beanie que usarás
+        )
 
-		yield session
-		# MongoDB no necesita commit explícito para operaciones sin transacciones.
-	except PyMongoError as error:
-		# logger.error(f"MongoDB - Error during operation: {error}")
-		raise DatabaseError(f"MongoDB operation failed: {str(error)}")
-	finally:
-		await mongo_session.end_session()
+        yield session
+        # MongoDB no necesita commit explícito para operaciones sin transacciones.
+    except PyMongoError as error:
+        # logger.error(f"MongoDB - Error during operation: {error}")
+        raise DatabaseError(f"MongoDB operation failed: {str(error)}")
+    finally:
+        await mongo_session.end_session()

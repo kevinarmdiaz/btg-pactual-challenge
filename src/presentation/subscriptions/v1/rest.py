@@ -5,10 +5,10 @@ from src.domain.subscriptions import (
 from src.infrastructure.application import ResponseMulti
 from .contracts import SubscriptionPublic
 from src.application.dependency_injection import get_fund, get_user
-from ...application import subscriptions
-from ...infrastructure.mongodb import FundsCollection, UsersCollection
+from src.application import subscriptions
+from src.infrastructure.mongodb import FundsCollection, UsersCollection
 
-router = APIRouter(prefix="/subscription", tags=["Subscriptions"])
+router = APIRouter()
 
 
 @router.get("", status_code=status.HTTP_200_OK)

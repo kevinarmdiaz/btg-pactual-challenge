@@ -1,6 +1,7 @@
+from msilib.schema import Environment
 from pathlib import Path
-
-from pydantic import BaseModel, MongoDsn
+from pydantic import BaseModel, MongoDsn, computed_field
+from pydantic_core._pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -44,28 +45,14 @@ class LoggingSettings(BaseModel):
     compression: str = "zip"
 
 
-class AccessTokenSettings(BaseModel):
-    secret_key: str = "invaliad"
-    ttl: int = 100  # seconds
-
-
-class RefreshTokenSettings(BaseModel):
-    secret_key: str = "invaliad"
-    ttl: int = 100  # seconds
-
-
-class AuthenticationSettings(BaseModel):
-    access_token: AccessTokenSettings = AccessTokenSettings()
-    refresh_token: RefreshTokenSettings = RefreshTokenSettings()
-    algorithm: str = "HS256"
-    scheme: str = "Bearer"
-
-
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", extra="ignore"
     )
-
+    
+    ENVIRONMENT: str = "TESTING"
+    
+    
     # Infrastructure settings
     database: DatabaseSettings = DatabaseSettings()
 
@@ -79,7 +66,7 @@ class Settings(BaseSettings):
 
     SITE_DOMAIN: str = "invesmentfundsbtgapp.com"
 
-    API_V1_STR: str = "v1"
+    API_V1_STR: str = "/api/v1"
     DEBUG: bool = True
 
     # ENVIRONMENT: Environment = Environment.PRODUCTION
@@ -89,7 +76,7 @@ class Settings(BaseSettings):
     DB_NAME: str = 'invesmentfundsdb'
 
     # MongoDB
-    MONGODB_URI: MongoDsn = "mongodb://db:27017/"
+    MONGODB_URI: MongoDsn = "mongodb://localhost:27017/"
     MONGODB_DB_NAME: str = "fundsappdb"
 
     SENTRY_DSN: str | None = None

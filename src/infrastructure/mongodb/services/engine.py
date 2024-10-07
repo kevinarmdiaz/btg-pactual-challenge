@@ -1,5 +1,6 @@
 from functools import lru_cache
 from motor.motor_asyncio import AsyncIOMotorClient
+from mongomock_motor import AsyncMongoMockClient
 
 from src.config import settings
 
@@ -10,4 +11,7 @@ def create_motor_client() -> AsyncIOMotorClient:
     """
     return AsyncIOMotorClient(str(settings.MONGODB_URI),  uuidRepresentation='standard')
 
+
+# def create_test_motor_client() -> AsyncMongoMockClient:
+#     return AsyncMongoMockClient()
 
