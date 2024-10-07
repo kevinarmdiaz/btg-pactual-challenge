@@ -1,0 +1,13 @@
+from functools import lru_cache
+from motor.motor_asyncio import AsyncIOMotorClient
+
+from src.config import settings
+
+
+@lru_cache(maxsize=1)
+def create_motor_client() -> AsyncIOMotorClient:
+    """Create a new async motor client unique
+    """
+    return AsyncIOMotorClient(str(settings.MONGODB_URI),  uuidRepresentation='standard')
+
+

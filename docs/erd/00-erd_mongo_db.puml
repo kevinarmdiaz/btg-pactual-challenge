@@ -1,0 +1,32 @@
+@startuml
+entity "user" {
+  * _id: ObjectId
+  --
+  email: String
+  name: String
+  phone: String
+  subscribed_funds: [ ObjectId ]  --> Relationship with funds
+  balance: Int64
+}
+
+entity "funds" {
+  * _id: ObjectId
+  --
+  name: String
+  minimum_investment_amount: Int32
+  category: String
+}
+
+entity "log_transactions_funds" {
+  * _id: ObjectId
+  --
+  user_id: ObjectId
+  fund_id: Int32
+  transaction_type: String -> Might be [Apertura, Cancelación]
+  message: String
+  balance: Int64
+  date: IsoDate
+}
+
+user }o--|| funds: "subscribe to"
+@enduml

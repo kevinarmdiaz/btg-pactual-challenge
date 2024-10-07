@@ -1,0 +1,3 @@
+### Create a new product
+GET localhost:8000/products
+

@@ -1,0 +1,102 @@
+@startuml
+
+title 🏛️ ApiRest - Diagrama secuencia - BTG Funds
+skinparam handwritten true
+
+actor Usuario #lightblue
+participant "<img:FastAPI.png> <b>Investment Fund App </b> " as FastAPI
+participant " <img:https://img.icons8.com/color/32/mongo-db.png> <b> MongoDB </b> " as MongoDB
+participant " <img:aws-sqs-simple-queue-service.svg> <b> SQS </b>" as SQS
+participant " <img:aws-sns-simple-notification-service.svg> <b> SNS </b>" as SNS
+autonumber "<b>[0]"
+
+skinparam sequence {
+ArrowColor DeepSkyBlue
+ActorBorderColor DeepSkyBlue
+LifeLineBorderColor blue
+LifeLineBackgroundColor #A9DCDF
+
+ParticipantBorderColor DeepSkyBlue
+ParticipantBackgroundColor DodgerBlue
+ParticipantFontName Impact
+ParticipantFontSize 17
+ParticipantFontColor #A9DCDF
+
+ActorBackgroundColor aqua
+ActorFontColor DeepSkyBlue
+ActorFontSize 17
+ActorFontName Aapex
+}
+
+== <img:https://img.icons8.com/color/32/plus--v1.png> Suscripción a un fondo <img:https://img.icons8.com/color/32/money-bag-franc.png> ==
+Usuario -> FastAPI:<img:post.png> POST users/<user_id: str>/funds/<fund_id: str>/suscribir-fondo/
+alt#Gold #LightGreen <img:https://img.icons8.com/color/16/checked--v1.png> Validar suscripción al fondo
+    FastAPI -> MongoDB: Valida si el usuario no esta suscrito al fondo
+    MongoDB -> FastAPI: True: Esta suscrito al fondo
+
+    alt#Gold #LightGreen <img:https://img.icons8.com/color/16/checked--v1.png> Monto minimo correcto
+        MongoDB -> FastAPI: True: Es posible suscribirse al fondo
+        FastAPI -> MongoDB: Restar del balance el valor con el cual se va a suscribir al fondo
+        MongoDB -> FastAPI:  Operación correcta
+        FastAPI -> MongoDB: Guardar en user la suscripción al fondo
+        MongoDB -> FastAPI:  Operación correcta
+        FastAPI -> MongoDB: Guardar en log_transactions_funds el registro de la transacción
+        MongoDB -> FastAPI:  Operación correcta
+        FastAPI -> Usuario : 200: El usuario se ha suscrito correctamente al fondo <b> "<FONDO_DE_INVERSION>"</b>
+    else  #FFCCCB <img:"https://img.icons8.com/color/16/error--v1.png"> Error
+        MongoDB -> FastAPI: False: No es posible suscribirse al fondo
+        FastAPI -[#red]>x Usuario: 400: Error su balance: <USER_BALANCE> no es suficiente  \n para suscribirse al fondo "<FONDO_DE_INVERSION>" \n con monto mínimo "<minimum_investment_amount>"
+    end
+else #FFCCCB <img:"https://img.icons8.com/color/16/error--v1.png"> Error
+    MongoDB -> FastAPI: True: Si está suscrito al fondo
+    FastAPI -[#red]>x Usuario: 400: Error, usted ya está en el fondo "<FONDO_DE_INVERSION>"
+end
+
+== <img:https://img.icons8.com/fluency/32/emergency-exit.png> Cancelación de un fondo <img:https://img.icons8.com/color/32/money-bag-franc.png> ==
+
+Usuario -> FastAPI:<img:post.png> POST users/<user_id: str>/funds/<fund_id: str>/cancelar-fondo/
+alt#Gold #LightGreen <img:https://img.icons8.com/color/16/checked--v1.png> Validar suscripción al fondo
+    FastAPI -> MongoDB: Valida si el usuario no esta inscrito al fondo
+    MongoDB -> FastAPI: False: Si esta suscrito al fondo
+    FastAPI -> MongoDB: Sumar al balance el valor cuando se cancele el fondo
+    MongoDB -> FastAPI:  Operación correcta
+    FastAPI -> MongoDB: Remover de user la suscripción al fondo
+    MongoDB -> FastAPI:  Operación correcta
+    FastAPI -> MongoDB: Guardar en log_transactions_funds el registro de la transacción
+    MongoDB -> FastAPI:  Operación correcta
+    FastAPI -> Usuario : 200: El usuario ha cancelado la suscripción correctamente al fondo <b> "<FONDO_DE_INVERSION>"</b>
+
+else #FFCCCB <img:"https://img.icons8.com/color/16/error--v1.png"> Error
+    MongoDB -> FastAPI: True: No está suscrito al fondo
+    FastAPI -[#red]>x Usuario: 400: Error, usted no está en el fondo "<FONDO_DE_INVERSION>"
+end
+
+
+alt Fondo no disponible o error
+    MongoDB --> FastAPI: Error (Fondo no disponible o suscripción fallida)
+    FastAPI -> Usuario: Respuesta de error (No se pudo suscribir al fondo)
+else Suscripción exitosa
+    MongoDB --> FastAPI: Confirmación de guardado
+
+    alt Preferencia SMS o Email
+        FastAPI -> SQS: Enviar evento de suscripción a la cola
+        SQS --> FastAPI: Evento en cola
+
+        FastAPI -> Usuario: Respuesta de éxito
+    end
+
+    alt Procesar suscripción desde SQS
+        SQS -> FastAPI: Evento de suscripción
+        FastAPI -> SNS: Publicar notificación según la preferencia del usuario (Email/SMS)
+
+        alt Notificación SMS
+            SNS -> Usuario: Enviar SMS
+        end
+
+        alt Notificación Email
+            SNS -> Usuario: Enviar Email
+        end
+    end
+
+end
+@enduml
