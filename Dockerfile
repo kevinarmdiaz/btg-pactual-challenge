@@ -34,14 +34,21 @@ WORKDIR /code
 # Copiar el entorno virtual desde la etapa builder
 COPY --from=builder /code/.venv /code/.venv
 
-# Configurar el PATH para usar el entorno virtual
 ENV PATH="/code/.venv/bin:$PATH"
 
-# Copiar el código fuente
 COPY ./src /code/src
 
-# Establecer variable para no hacer buffering en Python
+COPY ./start.sh /start.sh
+RUN chmod +x /start.sh
+
+RUN ls -l /code
+EXPOSE 8080
+# Copiar el script de health check
+COPY ./infra/healthcheck.py /code/healthcheck.py
+
+# Dar permisos de ejecución al script de health check (opcional, si lo necesitas ejecutar directamente)
+RUN chmod +x /code/healthcheck.py
+
 ENV PYTHONUNBUFFERED=1
 
-# Ejecutar la aplicación con Gunicorn y Uvicorn
-CMD ["gunicorn", "src.main:app", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8080"]
+CMD ["/start.sh"]

@@ -10,7 +10,7 @@ services:
         - mongodb-data:/data/db
       restart: always
 
-    backend:
+    funds_backend:
         build:
             context: ./
         depends_on:

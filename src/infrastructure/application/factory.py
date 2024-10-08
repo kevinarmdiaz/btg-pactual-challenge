@@ -41,6 +41,14 @@ def create(
     app.exception_handler(BaseError)(custom_base_errors_handler)
     app.exception_handler(ValidationError)(pydantic_validation_errors_handler)
     app.exception_handler(Exception)(python_base_error_handler)
+    
+    @app.get("/health")
+    async def health_check():
+        """
+
+        :return:
+        """
+        return {"status": "ok"}
 
     @app.on_event("startup")
     async def startup_event():

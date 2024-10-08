@@ -1,0 +1,197 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  BackendImage:
+    Type: String
+    Description: "La URL de la imagen del backend en ECR"
+    Default: "010526243953.dkr.ecr.us-east-1.amazonaws.com/challenge/backend-image:latest"
+
+Resources:
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties: {}
+
+  FileSystem:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      Encrypted: true
+
+  MountTarget:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref FileSystem
+      SubnetId: subnet-0cf2096a99950fa28  # El Subnet ID que obtuviste
+      SecurityGroups:
+        - sg-0074e44497a678958  # El ID de tu Security Group
+
+  MongoDBTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: mongodb-task
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt ECSExecutionRole.Arn
+      TaskRoleArn: !GetAtt ECSTaskRole.Arn
+      ContainerDefinitions:
+        - Name: mongodb
+          Image: mongo:5.0.17
+          PortMappings:
+            - ContainerPort: 27017
+          MountPoints:
+            - SourceVolume: mongodb-data
+              ContainerPath: /data/db
+      Volumes:
+        - Name: mongodb-data
+          EFSVolumeConfiguration:
+            FilesystemId: !Ref FileSystem
+            TransitEncryption: ENABLED
+
+  BackendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: backend-task
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !GetAtt ECSExecutionRole.Arn
+      TaskRoleArn: !GetAtt ECSTaskRole.Arn
+      ContainerDefinitions:
+        - Name: backend
+          Image: !Ref BackendImage
+          PortMappings:
+            - ContainerPort: 8080
+          MountPoints:
+            - SourceVolume: mongodb-data
+              ContainerPath: /app/data
+          Environment:
+            - Name: FUNDSAPP_DEBUG
+              Value: "True"
+            - Name: FUNDSAPP_USE_CORRELATION_ID
+              Value: "False"
+            - Name: FUNDSAPP_UVICORN_HOST
+              Value: "0.0.0.0"
+            - Name: FUNDSAPP_UVICORN_PORT
+              Value: "8080"
+            - Name: ENVIRONMENT
+              Value: "development"
+            - Name: FUNDSAPP_LOG_LEVEL
+              Value: "INFO"
+            - Name: MONGODB_DB_NAME
+              Value: "fundsapp"
+            - Name: MONGODB_URI  # URI de MongoDB usando DNS de Service Discovery
+              Value: "mongodb://mongodb.myapp.local:27017/fundsappdb"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /ecs/backend
+              awslogs-region: us-east-1
+              awslogs-stream-prefix: ecs
+      Volumes:
+        - Name: mongodb-data
+          EFSVolumeConfiguration:
+            FilesystemId: !Ref FileSystem
+            TransitEncryption: ENABLED
+
+  ECSServiceMongoDB:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref MongoDBTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - subnet-0cf2096a99950fa28
+          SecurityGroups:
+            - sg-0074e44497a678958
+          AssignPublicIp: ENABLED
+      ServiceRegistries:
+        - RegistryArn: !GetAtt MongoDBServiceDiscovery.Arn
+
+  ECSServiceBackend:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref BackendTaskDefinition
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - subnet-0cf2096a99950fa28
+          SecurityGroups:
+            - sg-0074e44497a678958
+          AssignPublicIp: ENABLED
+
+  ECSExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ecsTaskExecutionRolePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+
+  ### Agregamos la política para SES al rol de la tarea ECS
+  ECSTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ECSTaskSESAndSNSPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  # Permisos para enviar correos electrónicos con SES
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                  # Permisos para enviar SMS con SNS
+                  - sns:Publish
+                Resource: "*"
+
+  MongoDBServiceDiscovery:
+    Type: AWS::ServiceDiscovery::Service
+    Properties:
+      Name: "mongodb"
+      DnsConfig:
+        DnsRecords:
+          - TTL: 60
+            Type: A
+      NamespaceId: !Ref ECSServiceDiscoveryNamespace
+      HealthCheckCustomConfig:
+        FailureThreshold: 1
+
+  ECSServiceDiscoveryNamespace:
+    Type: AWS::ServiceDiscovery::PrivateDnsNamespace
+    Properties:
+      Name: "myapp.local"
+      Vpc: vpc-049691697bd00a92b

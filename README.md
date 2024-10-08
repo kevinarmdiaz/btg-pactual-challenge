@@ -107,27 +107,14 @@ Vamos a crear varias colecciones para la base de datos (No Sql).
 
 Uso de la API
 Endpoints disponibles:
-Aquí debes listar y describir los principales endpoints de tu API. Incluye ejemplos de las rutas, parámetros y respuestas esperadas.
 
-**GET /items**  - Obtiene una lista de ítems.
-```bash
-curl -X GET http://127.0.0.1:8000/items/
-```
-bash
-Copy code
-
-POST /items - Crea un nuevo ítem.
-
-```bash
-curl -X POST http://127.0.0.1:8000/items/
-```
 
 
 ## Documentación interactiva:
 FastAPI incluye automáticamente una documentación interactiva usando Swagger UI. Puedes acceder a ella visitando:
 
-http://127.0.0.1:8000/docs (Swagger UI)
-http://127.0.0.1:8000/redoc (ReDoc)
+- http://127.0.0.1:8000/docs (Swagger UI)
+- http://127.0.0.1:8000/redoc (ReDoc)
 
 
 # Pruebas y coverage 
@@ -137,12 +124,53 @@ El proyecto incluye pruebas unitarias para validar la funcionalidad. Las pruebas
 pytest --cov=app
 
 
-## 📝 How to Build
+## 🚀 Instalación y Configuración
+
+### Pre-requisitos
+
+- Tener instalado [Docker](https://docs.docker.com/get-docker/) y [Docker Compose](https://docs.docker.com/compose/install/).
+- Clonar este repositorio:
+
+```bash
+git clone https://github.com/tu-usuario/btg-pactual-challenge.git
+cd btg-pactual-challenge
+```
+
+```bash
+cp .env.example .env
+```
+
+Configura las variables de entorno necesarias dentro del archivo .env.
 
 
+## 🏃‍♂️ Instrucciones para ejecutar en local
+Sigue estos pasos para ejecutar el proyecto localmente usando Docker:
 
-# Estructura del Proyecto
-Explicar estructura
+1. Construir y levantar los contenedores:
+```bash
+docker-compose up --build
+```
+Esto levantará la aplicación junto con MongoDB y cualquier otro servicio necesario.
+
+
+3. Acceder a la documentación interactiva:
+FastAPI genera automáticamente documentación de la API con Swagger y ReDoc. Puedes acceder a la documentación en:
+
+Swagger UI: http://localhost:8080/docs
+ReDoc: http://localhost:8080/redoc
+4. Detener los contenedores:
+Para detener los contenedores, ejecuta:
+```bash
+docker-compose down
+```
+
+
+## ✉️ Contacto
+Para cualquier consulta, no dudes en contactarme:
+
+Correo electrónico: kevindiaz9511@gmail.com
+
+
 
 # 🤝 Menciones
 

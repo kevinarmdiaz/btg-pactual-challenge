@@ -13,6 +13,7 @@ from .entities import SubscriptionFlat, SubscriptionUncommited
 __all__ = ("SubscriptionsRepository",)
 
 from .subscription_status import SubscriptionStatus
+from ...config import settings
 from ...infrastructure.application.errors.entities import (
     SubscriptionConflictError,
     NotSubscribedError,
@@ -20,6 +21,9 @@ from ...infrastructure.application.errors.entities import (
 from ...infrastructure.logging.entities import LogUncommited
 from ...infrastructure.logging.repository import LogTransactionRepository
 from ...infrastructure.mongodb.services.session import BEANIE_ODM_EXCEPTIONS
+from ...infrastructure.notificator.services.NotificacionService import NotificationService
+from ...infrastructure.notificator.services.SESService import SESNotificationService
+from ...infrastructure.notificator.services.SNSService import SNSNotificationService
 
 
 class SubscriptionsRepository(BaseRepository[SubscriptionCollection]):
@@ -98,6 +102,16 @@ class SubscriptionsRepository(BaseRepository[SubscriptionCollection]):
                 message=f"El usuario {user.name} se ha suscrito a {fund.name} exitosamente",
                 balance=user.balance,
             )
+            
+            #FIXME: Poner como inyeccion de dependencia no depender de clases concretas
+            if not settings.ENVIRONMENT == 'TESTING':
+                sns_sender = SNSNotificationService()
+                sms_service = NotificationService(sns_sender)
+                sms_service.notify([user.phone], "Suscripción correcta", f"Usted se ha suscrito a {fund.name} exitosamente")
+                
+                ses_sender = SESNotificationService()
+                email_service = NotificationService(ses_sender)
+                email_service.notify([user.email], "Suscripción correcta", f"Usted se ha suscrito a {fund.name} exitosamente")
 
             await LogTransactionRepository().create(schema=log_transaction)
             await user.save_changes()
